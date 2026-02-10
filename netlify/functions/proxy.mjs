@@ -1,15 +1,5 @@
-/**
- * HAUSNATION — Odesli Proxy (Netlify Function)
- * Provider 3/3
- * 
- * Deploy:
- * 1. GitHub'da yeni repo oluştur
- * 2. Bu dosyayı netlify/functions/proxy.mjs olarak koy
- * 3. netlify.toml dosyasını root'a koy
- * 4. netlify.com'dan import et → Deploy
- * URL: https://SITE-ADIN.netlify.app/.netlify/functions/proxy?url=SPOTIFY_URL
- */
-export default async (req) => {
+// Netlify Functions v2 format
+export default async (req, context) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -31,20 +21,20 @@ export default async (req) => {
   }
 
   try {
-    const response = await fetch(
+    const res = await fetch(
       `https://api.song.link/v1-alpha.1/links?url=${encodeURIComponent(spotifyUrl)}&userCountry=US&songIfSingle=true`,
       { headers: { 'User-Agent': 'HausnationNetlify/1.0' } }
     );
 
-    if (!response.ok) {
-      return new Response(JSON.stringify({ error: `upstream_${response.status}` }), {
-        status: response.status,
+    if (!res.ok) {
+      return new Response(JSON.stringify({ error: `upstream_${res.status}` }), {
+        status: res.status,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
     }
 
-    const data = await response.text();
-    return new Response(data, {
+    const body = await res.text();
+    return new Response(body, {
       status: 200,
       headers: { 'Content-Type': 'application/json', ...corsHeaders, 'Cache-Control': 'public, max-age=3600' },
     });
@@ -56,4 +46,6 @@ export default async (req) => {
   }
 };
 
-export const config = { path: '/.netlify/functions/proxy' };
+export const config = {
+  path: "/api/proxy"
+};
